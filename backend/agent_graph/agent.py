@@ -231,6 +231,13 @@ def history_node(state: AgentState, db: Session) -> AgentState:
     # Clean titles from query
     if hcp_name_query:
         hcp_name_query = hcp_name_query.replace("dr.", "").replace("dr ", "").strip()
+        # Exclude generic words that are NOT doctor names
+        if hcp_name_query.lower() in [
+            "today's interaction", "todays interaction", "today's meeting", "todays meeting",
+            "the meeting", "the interaction", "interaction", "meeting", "today", "yesterday",
+            "recent", "this meeting", "this interaction"
+        ]:
+            hcp_name_query = None
         
     # Check if user specifically requested a summary of the active/recent interaction
     if "summary" in last_msg_lower or "summarize" in last_msg_lower:
@@ -264,8 +271,11 @@ def history_node(state: AgentState, db: Session) -> AgentState:
             hcp_name = hcp.name if hcp else "Unknown Doctor"
             date_str = interaction.date.isoformat() if interaction.date else "Unknown Date"
             summary_text = interaction.summary or "No summary available."
+            follow_up_date_str = interaction.follow_up_date.isoformat() if interaction.follow_up_date else "No follow-up scheduled"
             
-            state["response"] = f"Here is the summary of the interaction with **{hcp_name}** on **{date_str}**:\n\n{summary_text}"
+            state["response"] = f"Here is the summary of the interaction with **{hcp_name}** on **{date_str}**:\n" \
+                                f"* **Summary**: {summary_text}\n" \
+                                f"* **Follow-up**: Scheduled on {follow_up_date_str}."
             return state
         else:
             state["response"] = "No previous interactions found. Please log your first HCP interaction."
