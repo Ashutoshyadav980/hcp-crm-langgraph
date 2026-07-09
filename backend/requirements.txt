@@ -1,14 +1,15 @@
 fastapi==0.111.0
-uvicorn==0.30.1
+uvicorn[standard]==0.30.1
 sqlalchemy==2.0.31
 pymysql==1.1.1
 cryptography==42.0.8
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.9
 pydantic==2.8.2
 pydantic-settings==2.3.4
 langgraph==0.1.4
-langchain-groq==0.1.6
 langchain-core==0.2.19
+langchain-groq==0.1.6
 python-dotenv==1.0.1
