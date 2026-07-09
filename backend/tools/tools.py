@@ -123,7 +123,7 @@ def extract_interaction_with_llm(text: str) -> dict:
     - topics_discussed: What was discussed (e.g. "Product X efficacy")
     - materials_shared: What was shared or requested (e.g. "Brochures", "10 samples")
     - sentiment: "Positive", "Neutral", "Negative" (default: "Positive")
-    - follow_up_date: YYYY-MM-DD format. Calculate from expressions relative to today's date (today is {datetime.date.today().isoformat()}, today weekday is {datetime.date.today().strftime('%A')}). E.g., "next Tuesday" or "next Friday" or "after 10 days". If no follow-up timeline is mentioned in the text, recommend a default date exactly 14 days from today (i.e. {(datetime.date.today() + datetime.timedelta(days=14)).isoformat()}).
+    - follow_up_date: YYYY-MM-DD format. Calculate from expressions relative to today's date (today is {datetime.date.today().isoformat()}, today weekday is {datetime.date.today().strftime('%A')}). E.g., "next Tuesday" or "next Friday" or "after 10 days". If no follow-up date is mentioned in the text, return empty string or null.
     - notes: Extra details.
     - summary: Concise 1-2 sentence overview of the interaction.
 
@@ -296,12 +296,9 @@ def LogInteractionTool(user_id: int, db: Session, text: str) -> dict:
     extracted["hospital"] = hcp.hospital
     extracted["specialty"] = hcp.specialty
 
-    summary_msg = extracted.get("summary", "")
-    follow_up_msg = f"Scheduled on {extracted.get('follow_up_date')}." if extracted.get('follow_up_date') else "No follow-up scheduled."
-
     return {
         "success": True,
-        "message": f"**Interaction logged successfully!** Saved meeting with {hcp_name}.\n* **Summary**: {summary_msg}\n* **Follow-up**: {follow_up_msg}",
+        "message": f"**Interaction logged successfully!** Saved meeting with {hcp_name}.",
         "extracted_data": extracted
     }
 
