@@ -216,7 +216,19 @@ def LogInteractionTool(user_id: int, db: Session, text: str) -> dict:
     
     # 2. Database Operations (Search/Create HCP, save Interaction & FollowUp)
     db_start = time.perf_counter()
-    hcp_name = extracted.get("hcp_name", "Dr. Unknown")
+    hcp_name = extracted.get("hcp_name", "").strip()
+    
+    # Strict validation of Doctor/HCP Name
+    clean_hcp_name = hcp_name.replace("Dr.", "").replace("Dr", "").strip()
+    if not clean_hcp_name or clean_hcp_name.lower() in ["unknown", "u", "none", "null", "placeholder", ""]:
+        db_elapsed = (time.perf_counter() - db_start) * 1000
+        print(f"[TIMER] Database operations (invalid doctor name abort) took: {db_elapsed:.2f}ms")
+        return {
+            "success": False,
+            "message": "I couldn't find the doctor's name in your message. Could you please specify which HCP you met?",
+            "extracted_data": None
+        }
+        
     hcp = db.query(HCP).filter(HCP.name == hcp_name, HCP.created_by == user_id).first()
     if not hcp:
         hcp = HCP(
@@ -441,22 +453,50 @@ def SearchHCPTool(user_id: int, db: Session, query: str) -> dict:
 
 
 # --- 4. InteractionHistoryTool ---
-def InteractionHistoryTool(user_id: int, db: Session, hcp_id: int = None) -> dict:
+def InteractionHistoryTool(user_id: int, db: Session, hcp_id: int = None, hcp_name_query: str = None) -> dict:
     print(f"\n[DEBUG] === LangGraph Tool Selected: InteractionHistoryTool ===")
-    print(f"[DEBUG] Target HCP ID: {hcp_id}")
+    print(f"[DEBUG] Target HCP ID: {hcp_id}, Name Query: '{hcp_name_query}'")
     db_start = time.perf_counter()
+    
+    target_hcp_name = "Unknown Doctor"
+    if hcp_name_query:
+        hcp = db.query(HCP).filter(
+            HCP.created_by == user_id,
+            HCP.name.ilike(f"%{hcp_name_query}%")
+        ).first()
+        if hcp:
+            hcp_id = hcp.id
+            target_hcp_name = hcp.name
+        else:
+            db_elapsed = (time.perf_counter() - db_start) * 1000
+            print(f"[TIMER] Database operations took: {db_elapsed:.2f}ms")
+            clean_query = hcp_name_query.replace("Dr.", "").replace("Dr", "").strip()
+            return {
+                "success": False,
+                "message": f"No interaction found for Dr. {clean_query}.",
+                "history": []
+            }
+            
     query = db.query(Interaction).filter(Interaction.user_id == user_id)
     if hcp_id:
         query = query.filter(Interaction.hcp_id == hcp_id)
+        if target_hcp_name == "Unknown Doctor":
+            hcp = db.query(HCP).filter(HCP.id == hcp_id).first()
+            if hcp:
+                target_hcp_name = hcp.name
     
     interactions = query.order_by(Interaction.date.desc()).limit(5).all()
 
     if not interactions:
         db_elapsed = (time.perf_counter() - db_start) * 1000
         print(f"[TIMER] Database operations took: {db_elapsed:.2f}ms")
+        display_name = target_hcp_name if target_hcp_name != "Unknown Doctor" else (hcp_name_query if hcp_name_query else "John")
+        
+        # Clean display name formatting
+        display_name_clean = display_name.replace("Dr.", "").replace("Dr", "").strip()
         return {
-            "success": True,
-            "message": "No interaction history found.",
+            "success": False,
+            "message": f"No interaction found for Dr. {display_name_clean}.",
             "history": []
         }
 
