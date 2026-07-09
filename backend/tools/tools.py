@@ -2,14 +2,16 @@ import os
 import json
 import datetime
 import traceback
+from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from models.models import HCP, Interaction, FollowUp, Product
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 
-# Load environment variables
-load_dotenv()
+# Load environment variables relative to this file's location
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 import time
 
