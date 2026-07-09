@@ -116,12 +116,19 @@ const Login = () => {
           </Link>
         </div>
 
-        {/* Demo Credentials Alert Banner */}
-        <div className="mt-8 p-3.5 bg-slate-900/60 border border-slate-700/30 rounded-lg text-xs text-slate-400">
-          <p className="font-semibold text-slate-300 mb-1">Local Seeding Demo Credentials:</p>
-          <p>Email: <code className="text-sky-400 font-mono">sales@hcp-crm.com</code></p>
-          <p>Password: <code className="text-sky-400 font-mono">sales123</code></p>
-        </div>
+       {/* User Information */}
+<div className="mt-8 p-3.5 bg-slate-900/60 border border-slate-700/30 rounded-lg text-xs text-slate-400">
+  <p className="font-semibold text-slate-300 mb-1">
+    Getting Started
+  </p>
+  <p>
+    If you're using the application for the first time, click
+    <span className="text-sky-400 font-semibold"> Register</span> to create your account.
+  </p>
+  <p className="mt-1">
+    After registration, sign in using your registered email address and password.
+  </p>
+</div>
       </div>
     </div>
   );
